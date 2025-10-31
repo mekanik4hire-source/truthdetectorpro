@@ -46,17 +46,21 @@ const StatCard = ({ label, value, sublabel, icon: Icon, accent }: StatCardProps)
 );
 
 interface MetricsSummary {
-  uptime: string;
-  accuracy: string;
-  accuracySubtext?: string;
-  totalScans: number;
-  riskyRate: string;
+  uptime90d: number;
+  accuracy30d: number;
+  scans30d: number;
+  risky30d: number;
+  riskyRate: number;
+  avgTTVms: number;
+  lastUpdated: string;
 }
 
 interface TimeseriesDataPoint {
   day: number;
+  date: string;
   scans: number;
   risky: number;
+  ttv: number;
 }
 
 export default function Transparency() {
@@ -73,7 +77,7 @@ export default function Transparency() {
   useEffect(() => {
     fetch('/api/metrics/timeseries')
       .then(r => r.json())
-      .then(setTimeseries)
+      .then(data => setTimeseries(data.points))
       .catch(err => console.error('Failed to fetch timeseries:', err));
   }, []);
 
@@ -97,10 +101,16 @@ export default function Transparency() {
 
       {summary ? (
         <div className="grid gap-4 md:grid-cols-4">
-          <StatCard label="Uptime (90d)" value={summary.uptime} icon={Activity} accent={tokens.safe} />
-          <StatCard label="Accuracy (30d)" value={summary.accuracy} sublabel={summary.accuracySubtext} icon={BarChart3} accent={tokens.copper} />
-          <StatCard label="Scans (30d)" value={summary.totalScans.toLocaleString()} icon={ShieldCheck} accent={tokens.patina} />
-          <StatCard label="Risky rate" value={summary.riskyRate} icon={AlertTriangle} accent={tokens.warn} />
+          <StatCard label="Uptime (90d)" value={`${summary.uptime90d.toFixed(2)}%`} icon={Activity} accent={tokens.safe} />
+          <StatCard 
+            label="Accuracy (30d)" 
+            value={`${summary.accuracy30d.toFixed(1)}%`} 
+            sublabel={`False positives: ${(100 - summary.accuracy30d).toFixed(1)}%`}
+            icon={BarChart3} 
+            accent={tokens.copper} 
+          />
+          <StatCard label="Scans (30d)" value={summary.scans30d.toLocaleString()} icon={ShieldCheck} accent={tokens.patina} />
+          <StatCard label="Risky rate" value={`${summary.riskyRate}%`} icon={AlertTriangle} accent={tokens.warn} />
         </div>
       ) : (
         <div className="text-center text-white/60 py-8">Loading metrics...</div>

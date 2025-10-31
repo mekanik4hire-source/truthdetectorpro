@@ -122,19 +122,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/metrics/summary", (req, res) => {
-    const riskyRate = ((metrics.risky30d / metrics.scans30d) * 100).toFixed(1);
+  app.get("/api/metrics/summary", (_req, res) => {
+    const riskyRate = metrics.scans30d ? (metrics.risky30d / metrics.scans30d) * 100 : 0;
     res.json({
-      uptime: `${metrics.uptime90d.toFixed(2)}%`,
-      accuracy: `${metrics.accuracy30d.toFixed(1)}%`,
-      accuracySubtext: `False positives: ${(100 - metrics.accuracy30d).toFixed(1)}%`,
-      totalScans: metrics.scans30d,
-      riskyRate: `${riskyRate}%`,
+      uptime90d: metrics.uptime90d,
+      accuracy30d: metrics.accuracy30d,
+      scans30d: metrics.scans30d,
+      risky30d: metrics.risky30d,
+      riskyRate: Number(riskyRate.toFixed(1)),
+      avgTTVms: Math.round(metrics.avgTTVms),
+      lastUpdated: new Date().toISOString(),
     });
   });
 
-  app.get("/api/metrics/timeseries", (req, res) => {
-    res.json(timeseries);
+  app.get("/api/metrics/timeseries", (_req, res) => {
+    res.json({ points: timeseries });
   });
 
   const httpServer = createServer(app);
