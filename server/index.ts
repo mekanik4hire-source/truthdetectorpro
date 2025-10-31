@@ -4,19 +4,9 @@ import path from 'path'
 import cors from 'cors'
 import { fileURLToPath } from 'url'
 
-// Handle directory path in both ESM (development) and CommonJS (production)
-// For production (CommonJS), __dirname is built-in
-// For development (ESM with tsx), we construct it from import.meta.url
-let currentDir: string
-// @ts-ignore - In CommonJS, __dirname is defined globally
-if (typeof __dirname !== 'undefined') {
-  currentDir = __dirname
-} else {
-  // ESM mode: construct __dirname equivalent
-  // Using eval to prevent TS compilation of import.meta
-  const metaUrl = (new Function('return import.meta.url'))()
-  currentDir = path.dirname(fileURLToPath(metaUrl))
-}
+// Handle directory path (works in both ESM dev/prod modes)
+// @ts-ignore - import.meta.url is available in ESM environments
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 app.use(cors())
@@ -79,8 +69,8 @@ app.get('/api/metrics/timeseries', (_req, res) => {
 const isDev = process.env.NODE_ENV === 'development'
 
 if (!isDev) {
-  // When compiled, currentDir === server/dist. The built client is in ../public.
-  const publicDir = path.join(currentDir, '../public')
+  // In production: currentDir is dist/ (esbuild output), public is at dist/public/
+  const publicDir = path.join(currentDir, 'public')
   app.use(express.static(publicDir))
 
   // SPA fallback — send index.html for non-API routes
