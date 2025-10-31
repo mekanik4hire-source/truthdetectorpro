@@ -64,7 +64,8 @@ app.get('/api/metrics/timeseries', (_req, res) => {
 const isDev = process.env.NODE_ENV === 'development'
 
 if (!isDev) {
-  const publicDir = path.join(__dirname, 'public')
+  // In production, compiled code is in server/dist/server/, so go up to find public/
+  const publicDir = path.resolve(__dirname, '../../public')
   app.use(express.static(publicDir))
 
   app.get('*', (_req, res) => {

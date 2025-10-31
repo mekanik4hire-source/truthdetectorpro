@@ -9,8 +9,12 @@
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "..",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
