@@ -44,19 +44,23 @@ Preferred communication style: Simple, everyday language.
 
 **API Structure:**
 - RESTful endpoints under `/api` prefix
-- POST `/api/verify` - Submit claims for verification
-- GET `/api/verifications` - Retrieve verification history
+- POST `/api/verify` - Submit claims for verification (fully functional)
+- GET `/api/verifications` - Retrieve all verification history
+- GET `/api/verifications/:id` - Retrieve specific verification by ID
 - Request/response validation using shared Zod schemas
+- All endpoints tested end-to-end with Playwright
 
 **Storage Strategy:**
 - Current implementation uses in-memory storage (`MemStorage` class)
 - Database schema defined for future PostgreSQL migration
-- Tables: `users` (authentication), `verifications` (claim records)
+- Tables: `users` (authentication), `verifications` (claim records with sources)
+- Sources are serialized as JSON strings in storage and parsed on retrieval
 
 **Data Models:**
 - User: id, username, password
-- Verification: id, claim, verdict, confidence (integer), status, sources (JSON), createdAt
+- Verification: id, claim, verdict, confidence (integer), status, sources (JSON string), createdAt
 - VerificationSource: name, url, credibility score
+- VerificationResult: API response type with parsed sources and ISO string createdAt
 
 ### Development & Build System
 
@@ -86,14 +90,18 @@ Preferred communication style: Simple, everyday language.
 ### Verification Logic
 
 **Current Implementation:**
-- Mock verification function (`analyzeClaimMock`) generates placeholder results
-- Returns verdict, confidence score, status, and mock sources
-- Designed for easy replacement with actual AI/ML verification service
+- Mock verification function (`analyzeClaimMock`) analyzes claims with pattern matching
+- Returns verdict (True/False/Mostly True/Partially True/Mostly False), confidence score (0-100), status, and sources
+- Recognizes specific claims like "Earth orbits the Sun" (99% True), "flat earth" (98% False)
+- For unknown claims, generates random but plausible verdicts
+- Processing takes ~1.5 seconds to simulate real AI analysis
+- Sources always include Reuters Fact Check, AP News, and Snopes with credibility scores
+- All results are persisted to in-memory storage
 
 **Extensibility Points:**
-- Verification service can be swapped with external API integration
-- Source credibility scoring system in place
-- Result caching prepared through verification storage
+- Verification service can be swapped with external API integration (OpenAI, custom ML model, etc.)
+- Source credibility scoring system in place and ready for real data
+- Results are stored and retrievable via GET endpoints for history/analytics
 
 ## External Dependencies
 
@@ -126,8 +134,37 @@ Preferred communication style: Simple, everyday language.
 - **clsx & tailwind-merge:** Conditional class name utilities
 - **Lucide React:** Icon library
 
-### Potential Future Integrations
-- AI/ML fact-checking service (to replace mock verification)
+## Recent Updates (October 2025)
+
+**Completed Features:**
+- ✅ Full verification API implementation with POST /api/verify endpoint
+- ✅ Frontend VerificationDemo component connected to real backend API
+- ✅ In-memory storage for verification history
+- ✅ End-to-end testing with Playwright (all tests passing)
+- ✅ Type-safe schema contracts between frontend and backend
+- ✅ Source persistence and retrieval
+
+**Current Status:**
+The application is fully functional as a demo/template with:
+- Working claim verification flow from UI to API to storage
+- Professional landing page design
+- Interactive demo component with real-time results
+- Clean architecture ready for production enhancements
+
+### Next Steps for Production
+
+**Required for Launch:**
+1. Replace in-memory storage with PostgreSQL (Drizzle + Neon)
+2. Integrate actual AI/ML verification service
+3. Implement user authentication and authorization
+4. Add rate limiting and API security
+5. Set up logging and monitoring
+6. Add comprehensive error handling
+
+**Potential Future Integrations:**
+- AI/ML fact-checking service (OpenAI, Anthropic, custom models)
 - External credibility databases or APIs
-- User authentication provider (OAuth, etc.)
+- User authentication provider (OAuth, Replit Auth)
 - Real-time notifications or WebSocket updates
+- Advanced analytics dashboard
+- Verification history export/reporting
