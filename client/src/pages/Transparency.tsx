@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -44,16 +45,37 @@ const StatCard = ({ label, value, sublabel, icon: Icon, accent }: StatCardProps)
   </div>
 );
 
-const mockDaily = Array.from({ length: 30 }).map((_, i) => ({
-  day: i + 1,
-  scans: Math.round(400 + Math.random() * 300),
-  risky: Math.round(40 + Math.random() * 40),
-}));
+interface MetricsSummary {
+  uptime: string;
+  accuracy: string;
+  accuracySubtext?: string;
+  totalScans: number;
+  riskyRate: string;
+}
+
+interface TimeseriesDataPoint {
+  day: number;
+  scans: number;
+  risky: number;
+}
 
 export default function Transparency() {
-  const totalScans = mockDaily.reduce((a, b) => a + b.scans, 0);
-  const totalRisky = mockDaily.reduce((a, b) => a + b.risky, 0);
-  const riskyRate = ((totalRisky / totalScans) * 100).toFixed(1);
+  const [summary, setSummary] = useState<MetricsSummary | null>(null);
+  const [timeseries, setTimeseries] = useState<TimeseriesDataPoint[]>([]);
+
+  useEffect(() => {
+    fetch('/api/metrics/summary')
+      .then(r => r.json())
+      .then(setSummary)
+      .catch(err => console.error('Failed to fetch summary:', err));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/metrics/timeseries')
+      .then(r => r.json())
+      .then(setTimeseries)
+      .catch(err => console.error('Failed to fetch timeseries:', err));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0B0E12] text-white p-8">
@@ -73,27 +95,35 @@ export default function Transparency() {
         Live metrics showing uptime, accuracy, scan volume, risky flags, and time-to-verdict.
       </p>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Uptime (90d)" value="99.97%" icon={Activity} accent={tokens.safe} />
-        <StatCard label="Accuracy (30d)" value="98.4%" sublabel="False positives: 1.6%" icon={BarChart3} accent={tokens.copper} />
-        <StatCard label="Scans (30d)" value={totalScans.toLocaleString()} icon={ShieldCheck} accent={tokens.patina} />
-        <StatCard label="Risky rate" value={`${riskyRate}%`} icon={AlertTriangle} accent={tokens.warn} />
-      </div>
+      {summary ? (
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCard label="Uptime (90d)" value={summary.uptime} icon={Activity} accent={tokens.safe} />
+          <StatCard label="Accuracy (30d)" value={summary.accuracy} sublabel={summary.accuracySubtext} icon={BarChart3} accent={tokens.copper} />
+          <StatCard label="Scans (30d)" value={summary.totalScans.toLocaleString()} icon={ShieldCheck} accent={tokens.patina} />
+          <StatCard label="Risky rate" value={summary.riskyRate} icon={AlertTriangle} accent={tokens.warn} />
+        </div>
+      ) : (
+        <div className="text-center text-white/60 py-8">Loading metrics...</div>
+      )}
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
         <h3 className="text-lg font-semibold mb-3">Scans vs. Risky Flags (30 days)</h3>
-        <div className="h-64" data-testid="chart-scans-risky">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mockDaily}>
-              <CartesianGrid stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="day" stroke="rgba(255,255,255,0.6)" />
-              <YAxis stroke="rgba(255,255,255,0.6)" />
-              <Tooltip contentStyle={{ background: "#12151a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
-              <Area type="monotone" dataKey="scans" fill="rgba(42,209,123,0.25)" stroke="#2AD17B" strokeWidth={2} />
-              <Area type="monotone" dataKey="risky" fill="rgba(255,176,32,0.2)" stroke="#FFB020" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        {timeseries.length > 0 ? (
+          <div className="h-64" data-testid="chart-scans-risky">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={timeseries}>
+                <CartesianGrid stroke="rgba(255,255,255,0.08)" />
+                <XAxis dataKey="day" stroke="rgba(255,255,255,0.6)" />
+                <YAxis stroke="rgba(255,255,255,0.6)" />
+                <Tooltip contentStyle={{ background: "#12151a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+                <Area type="monotone" dataKey="scans" fill="rgba(42,209,123,0.25)" stroke="#2AD17B" strokeWidth={2} />
+                <Area type="monotone" dataKey="risky" fill="rgba(255,176,32,0.2)" stroke="#FFB020" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-64 flex items-center justify-center text-white/60">Loading chart data...</div>
+        )}
       </div>
     </div>
   );
