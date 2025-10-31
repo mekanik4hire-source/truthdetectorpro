@@ -65,25 +65,30 @@ app.get('/api/metrics/timeseries', (_req, res) => {
 })
 
 // -------------------- Serve SPA (static) --------------------
-// Only serve static files in production (when built files exist)
 const isDev = process.env.NODE_ENV === 'development'
 
-if (!isDev) {
-  // In production: currentDir is dist/ (esbuild output), public is at dist/public/
-  const publicDir = path.join(currentDir, 'public')
-  app.use(express.static(publicDir))
+// Determine public directory path based on environment
+// Dev: currentDir is server/, public is at server/public/
+// Prod: currentDir is server/dist/, public is at server/public/ (so ../public)
+const publicDir = isDev 
+  ? path.join(currentDir, 'public')
+  : path.join(currentDir, '../public')
 
-  // SPA fallback — send index.html for non-API routes
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(publicDir, 'index.html'))
-  })
-}
+// Serve static files in both dev and prod
+app.use(express.static(publicDir))
+
+// SPA fallback — send index.html for non-API routes
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'))
+})
 
 // -------------------- Start --------------------
 app.listen(PORT, () => {
-  console.log(`One-port server running at http://localhost:${PORT}`)
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
+  console.log(`📁 Serving static files from: ${publicDir}`)
   if (isDev) {
-    console.log('📊 Development mode - API only')
-    console.log('🎨 Run Vite client separately for frontend')
+    console.log('🔧 Development mode (serving pre-built files)')
+  } else {
+    console.log('🎯 Production mode')
   }
 })
