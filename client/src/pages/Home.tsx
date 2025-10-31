@@ -36,13 +36,13 @@ export default function Home() {
             a confidence score—and export receipts to prove it.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#"
+            <Link
+              href="/transparency"
               data-testid="button-add-to-browser"
               className="inline-flex items-center gap-2 rounded-2xl bg-[#2AD17B] px-5 py-3 text-black font-semibold hover:brightness-95 transition"
             >
               <ShieldCheck className="h-5 w-5" /> Add to Browser
-            </a>
+            </Link>
             <Link
               href="/transparency"
               data-testid="link-transparency"
