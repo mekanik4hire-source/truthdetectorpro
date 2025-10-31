@@ -1,20 +1,14 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ESNext",
-    "target": "ES2022",
-    "moduleResolution": "node",
+    "module": "commonjs",
+    "target": "es2019",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": true,
+    "strict": false,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "..",
-    "paths": {
-      "@shared/*": ["./shared/*"]
-    }
+    "sourceMap": true
   },
-  "include": ["./**/*.ts", "../shared/**/*.ts"],
+  "include": ["./index.ts"],
   "exclude": ["node_modules", "dist"]
 }

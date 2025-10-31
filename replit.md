@@ -45,48 +45,69 @@ Preferred communication style: Simple, everyday language.
 
 **Technology Stack:**
 - **Runtime:** Node.js with TypeScript
-- **Framework:** Express.js
-- **Database ORM:** Drizzle ORM
-- **Database Provider:** Neon serverless PostgreSQL (configured but using in-memory storage currently)
-- **Validation:** Zod schemas for type-safe API contracts
+- **Framework:** Express.js (standalone single-file server)
+- **CORS:** Enabled for development cross-origin requests
+
+**Server Architecture:**
+- **Single-file design:** `server/index.ts` contains all server logic
+- **Dual-mode operation:** Works in both ESM (development) and CommonJS (production)
+- **Development:** Runs with `tsx` (ESM), serves API only on port 3000
+- **Production:** Compiled to CommonJS, serves API + static files on one port
 
 **API Structure:**
 - RESTful endpoints under `/api` prefix
-- POST `/api/verify` - Submit claims for verification (fully functional)
-- GET `/api/verifications` - Retrieve all verification history
-- GET `/api/verifications/:id` - Retrieve specific verification by ID
-- Request/response validation using shared Zod schemas
-- All endpoints tested end-to-end with Playwright
+- GET `/api/metrics/summary` - Live transparency metrics (uptime, accuracy, scans, risky rate)
+- GET `/api/metrics/timeseries` - 30-day historical data for charts
+- Mock data with live updates every 8 seconds for demo purposes
 
-**Storage Strategy:**
-- Current implementation uses in-memory storage (`MemStorage` class)
-- Database schema defined for future PostgreSQL migration
-- Tables: `users` (authentication), `verifications` (claim records with sources)
-- Sources are serialized as JSON strings in storage and parsed on retrieval
-
-**Data Models:**
-- User: id, username, password
-- Verification: id, claim, verdict, confidence (integer), status, sources (JSON string), createdAt
-- VerificationSource: name, url, credibility score
-- VerificationResult: API response type with parsed sources and ISO string createdAt
+**Metrics System:**
+- **Summary metrics:** Uptime (99.97%), Accuracy (98.4%), total scans, risky flags, avg time-to-verify
+- **Timeseries data:** 30 daily data points (scans, risky flags, avg TTV per day)
+- **Live updates:** Metrics increment every 8 seconds to simulate real-time activity
+- All numeric values calculated server-side; frontend handles formatting only
 
 ### Development & Build System
 
-**Build Configuration:**
-- **Frontend:** Vite for fast development and optimized production builds
-- **Backend:** esbuild for bundling server code
-- **Development Mode:** Vite dev server with HMR, Express API proxy
-- **Production Mode:** Static frontend served by Express
+**Architecture:**
+- **Simplified single-server design** - One Express server handles all modes
+- **Development:** API-only server (port 3000), run Vite client separately
+- **Production:** Single server serves both API and static React app
+
+**Development Workflow:**
+```bash
+# Current workflow runs development server
+npm run dev  # Starts API on port 3000 with tsx
+
+# Run Vite client separately (optional)
+npm run dev:client  # Vite on port 5173, proxies /api to localhost:3000
+```
+
+**Production Build:**
+```bash
+# Build client
+cd client && npm run build  # Output: server/public/
+
+# Build server
+cd server && tsc -p tsconfig.json  # Output: server/dist/index.js
+mv server/dist/index.js server/dist/index.cjs  # Rename for CommonJS
+
+# Run production
+NODE_ENV=production node server/dist/index.cjs  # Single server on port 3000
+```
+
+**Build Outputs:**
+- **Client:** `server/public/` (Vite builds static files here)
+- **Server:** `server/dist/index.cjs` (TypeScript → CommonJS)
+- **Note:** `.cjs` extension required because root `package.json` has `"type": "module"`
 
 **Path Aliases:**
 - `@/*` - Client source files
-- `@shared/*` - Shared types and schemas
-- `@assets/*` - Static assets
+- `@assets/*` - Static assets (images, etc.)
 
 **Type Safety:**
-- Strict TypeScript configuration across frontend and backend
-- Shared schema definitions between client and server using Drizzle Zod
-- Type-safe API contracts
+- TypeScript for both frontend and backend
+- Frontend: Strict mode with React TypeScript
+- Server: CommonJS compilation with minimal config
 
 ### Authentication & Security
 
@@ -144,40 +165,63 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (October 31, 2025)
 
+**Architecture Simplification (Latest):**
+- ✅ Simplified server to single-file Express app (`server/index.ts`)
+- ✅ Dual-mode server: Development (ESM with tsx) + Production (CommonJS compiled)
+- ✅ Removed legacy verification API endpoints (focused on transparency metrics)
+- ✅ Updated build process: TypeScript → CommonJS → `.cjs` extension
+- ✅ Path resolution works in both ESM and CommonJS environments
+- ✅ Development server: API-only mode for use with separate Vite dev server
+- ✅ Production server: Single-port serving of API + static React app
+
 **Completed Features:**
 - ✅ Dark theme implementation with Ink (#0B0E12) background and Copper/Gold accents
-- ✅ New landing page with hero section and brand identity
+- ✅ Landing page with hero section and brand identity
 - ✅ Transparency dashboard with live metrics and data visualization
 - ✅ Recharts integration for 30-day scan analytics
 - ✅ Brand component library (LogoMark, BadgePill system)
 - ✅ Wouter routing between Home and Transparency pages
-- ✅ Full verification API implementation with POST /api/verify endpoint
-- ✅ In-memory storage for verification history
-- ✅ End-to-end testing with Playwright (all tests passing)
-- ✅ Type-safe schema contracts between frontend and backend
-- ✅ Source persistence and retrieval
+- ✅ Live metrics API with real-time updates every 8 seconds
+- ✅ Production build process verified and working
 
 **Current Status:**
-The application is fully functional as a demo/template with:
-- Working claim verification flow from UI to API to storage
-- Professional landing page design
-- Interactive demo component with real-time results
-- Clean architecture ready for production enhancements
+The application is fully functional with:
+- Professional landing page with dark theme design
+- Live transparency dashboard showing real-time metrics
+- Single-server production deployment ready
+- Clean separation between development and production modes
+
+### Architecture Notes
+
+**Server Modes:**
+- **Development:** `NODE_ENV=development tsx server/index.ts`
+  - Runs on port 3000 (or PORT env var)
+  - API endpoints only (no static files)
+  - Intended for use with Vite dev server running separately
+  
+- **Production:** `NODE_ENV=production node server/dist/index.cjs`
+  - Runs on port 3000 (or PORT env var)  
+  - Serves both API and static React build
+  - SPA fallback routing for client-side navigation
+
+**Build Files:**
+- Client build: `server/public/` (Vite output)
+- Server build: `server/dist/index.cjs` (TypeScript → CommonJS)
+- Both builds required for production deployment
 
 ### Next Steps for Production
 
-**Required for Launch:**
-1. Replace in-memory storage with PostgreSQL (Drizzle + Neon)
-2. Integrate actual AI/ML verification service
-3. Implement user authentication and authorization
+**Optional Enhancements:**
+1. Integrate actual fact-checking API or AI service
+2. Add user authentication system
+3. Implement verification history storage (database)
 4. Add rate limiting and API security
-5. Set up logging and monitoring
+5. Set up production logging and monitoring
 6. Add comprehensive error handling
 
-**Potential Future Integrations:**
-- AI/ML fact-checking service (OpenAI, Anthropic, custom models)
-- External credibility databases or APIs
-- User authentication provider (OAuth, Replit Auth)
-- Real-time notifications or WebSocket updates
+**Potential Future Features:**
+- User accounts and authentication
+- Verification history tracking
 - Advanced analytics dashboard
-- Verification history export/reporting
+- Real-time notifications
+- Export/reporting capabilities

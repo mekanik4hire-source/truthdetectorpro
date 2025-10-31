@@ -1,16 +1,30 @@
+// server/index.ts
 import express from 'express'
 import path from 'path'
 import cors from 'cors'
 import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+// Handle directory path in both ESM (development) and CommonJS (production)
+// In CommonJS (production), __dirname is automatically available
+// In ESM (development with tsx), we need to construct it from import.meta.url
+let currentDir: string
+if (typeof __dirname !== 'undefined') {
+  // CommonJS mode (compiled production)
+  currentDir = __dirname
+} else {
+  // ESM mode (tsx in development)
+  // Use eval to avoid TypeScript compilation errors with import.meta
+  const metaUrl = eval('import.meta.url')
+  currentDir = path.dirname(fileURLToPath(metaUrl))
+}
+
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-const PORT = Number(process.env.PORT) || 5050
+const PORT = Number(process.env.PORT) || 3000
 
+// -------------------- Mock Metrics API --------------------
 type TimeseriesPoint = { day: number; date: string; scans: number; risky: number; ttv: number }
 
 const metrics = {
@@ -60,23 +74,26 @@ app.get('/api/metrics/timeseries', (_req, res) => {
   res.json({ points: timeseries })
 })
 
+// -------------------- Serve SPA (static) --------------------
 // Only serve static files in production (when built files exist)
 const isDev = process.env.NODE_ENV === 'development'
 
 if (!isDev) {
-  // In production, compiled code is in server/dist/server/, so go up to find public/
-  const publicDir = path.resolve(__dirname, '../../public')
+  // When compiled, currentDir === server/dist. The built client is in ../public.
+  const publicDir = path.join(currentDir, '../public')
   app.use(express.static(publicDir))
 
+  // SPA fallback — send index.html for non-API routes
   app.get('*', (_req, res) => {
     res.sendFile(path.join(publicDir, 'index.html'))
   })
 }
 
+// -------------------- Start --------------------
 app.listen(PORT, () => {
-  console.log(`🚀 API Server running on http://localhost:${PORT}`)
+  console.log(`One-port server running at http://localhost:${PORT}`)
   if (isDev) {
-    console.log(`📊 API endpoints available at /api/*`)
-    console.log(`🎨 Run Vite client separately: npm run dev:client`)
+    console.log('📊 Development mode - API only')
+    console.log('🎨 Run Vite client separately for frontend')
   }
 })
