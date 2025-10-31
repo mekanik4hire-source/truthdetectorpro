@@ -5,16 +5,16 @@ import cors from 'cors'
 import { fileURLToPath } from 'url'
 
 // Handle directory path in both ESM (development) and CommonJS (production)
-// In CommonJS (production), __dirname is automatically available
-// In ESM (development with tsx), we need to construct it from import.meta.url
+// For production (CommonJS), __dirname is built-in
+// For development (ESM with tsx), we construct it from import.meta.url
 let currentDir: string
+// @ts-ignore - In CommonJS, __dirname is defined globally
 if (typeof __dirname !== 'undefined') {
-  // CommonJS mode (compiled production)
   currentDir = __dirname
 } else {
-  // ESM mode (tsx in development)
-  // Use eval to avoid TypeScript compilation errors with import.meta
-  const metaUrl = eval('import.meta.url')
+  // ESM mode: construct __dirname equivalent
+  // Using eval to prevent TS compilation of import.meta
+  const metaUrl = (new Function('return import.meta.url'))()
   currentDir = path.dirname(fileURLToPath(metaUrl))
 }
 
