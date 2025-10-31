@@ -4,6 +4,44 @@ import { storage } from "./storage";
 import { z } from "zod";
 import type { VerificationResult, VerificationSource } from "@shared/schema";
 
+// --- BEGIN: Metrics Mock (live-feel) ---
+type TimeseriesPoint = { day: number; date: string; scans: number; risky: number; ttv: number };
+
+const metrics = {
+  uptime90d: 99.97,
+  accuracy30d: 98.4,
+  scans30d: 0,
+  risky30d: 0,
+  avgTTVms: 780,
+};
+
+// 30 days of synthetic points
+const timeseries: TimeseriesPoint[] = Array.from({ length: 30 }).map((_, i) => {
+  const scans = Math.round(400 + Math.random() * 300);
+  const risky = Math.round(40 + Math.random() * 40);
+  const ttv = Math.round(600 + Math.random() * 200);
+  metrics.scans30d += scans;
+  metrics.risky30d += risky;
+  const date = new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return { day: i + 1, date, scans, risky, ttv };
+});
+
+// keep the last point moving so the dashboard looks alive
+setInterval(() => {
+  const bump = Math.round(200 + Math.random() * 200);
+  const risk = Math.round(bump * (0.1 + Math.random() * 0.1));
+  metrics.scans30d += bump;
+  metrics.risky30d += risk;
+  metrics.avgTTVms = Math.max(480, Math.min(1200, metrics.avgTTVms + (Math.random() - 0.5) * 40));
+  const today = timeseries[timeseries.length - 1];
+  today.scans += bump;
+  today.risky += risk;
+  today.ttv = metrics.avgTTVms;
+}, 8000);
+// --- END: Metrics Mock ---
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const verifyClaimSchema = z.object({
     claim: z.string().min(1, "Claim is required"),
@@ -82,6 +120,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching verification:", error);
       res.status(500).json({ error: "Failed to fetch verification" });
     }
+  });
+
+  app.get("/api/metrics/summary", (req, res) => {
+    const riskyRate = ((metrics.risky30d / metrics.scans30d) * 100).toFixed(1);
+    res.json({
+      uptime: `${metrics.uptime90d.toFixed(2)}%`,
+      accuracy: `${metrics.accuracy30d.toFixed(1)}%`,
+      accuracySubtext: `False positives: ${(100 - metrics.accuracy30d).toFixed(1)}%`,
+      totalScans: metrics.scans30d,
+      riskyRate: `${riskyRate}%`,
+    });
+  });
+
+  app.get("/api/metrics/timeseries", (req, res) => {
+    res.json(timeseries);
   });
 
   const httpServer = createServer(app);
