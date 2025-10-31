@@ -2,9 +2,9 @@
 
 ## Overview
 
-TruthDetectorPro is an AI-powered fact-checking and verification platform that allows users to submit claims and receive instant verification results with confidence scores, verdicts, and supporting sources. The application features a modern landing page with a demonstration interface for claim verification.
+TruthDetectorPro is an AI-powered fact-checking and verification platform that allows users to submit claims and receive instant verification results with confidence scores, verdicts, and supporting sources. The application features a modern dark-themed landing page with a transparency dashboard.
 
-The platform is built as a full-stack web application with a React frontend and Express backend, designed to provide fast, accurate fact-checking capabilities with a clean, professional user interface inspired by productivity tools like Linear and Notion.
+The platform is built as a full-stack web application with a React TypeScript frontend and Express backend, designed to provide fast, accurate fact-checking capabilities with a distinctive dark theme featuring ink backgrounds (#0B0E12) and copper/gold accents (#C69C6D).
 
 ## User Preferences
 
@@ -23,15 +23,23 @@ Preferred communication style: Simple, everyday language.
 
 **Design System:**
 - Typography: Inter for UI/body text, JetBrains Mono for data display
-- Color scheme: Neutral base with HSL color variables for theming
+- Color scheme: Dark theme with custom palette:
+  - Ink: #0B0E12 (primary dark background)
+  - Copper: #C69C6D (gold accent for borders/highlights)
+  - Bronze: #A87C48 (secondary gold accent)
+  - Safe: #2AD17B (green for success states)
+  - Warn: #FFB020 (orange for warnings)
+  - Patina: #2A8C82 (teal accent)
 - Spacing system: Consistent Tailwind units (2, 4, 8, 12, 16)
 - Component library: Comprehensive set of reusable UI components from Shadcn/ui
 
 **Key Frontend Components:**
-- Landing page sections: Hero, Features, How It Works, Statistics, Testimonials, CTA
-- Interactive verification demo component with claim submission and result display
-- Responsive header with mobile menu support
-- Form handling with React Hook Form and Zod validation
+- Landing page (Home): Dark-themed hero with gradient accent bar, badge component, and CTA buttons
+- Transparency dashboard: Live metrics display with 4 stat cards (Uptime, Accuracy, Scans, Risky Rate)
+- Data visualization: Recharts area chart showing 30-day scan volume vs risky flags
+- Brand components: LogoMark SVG with gradient, BadgePill system
+- Navigation: Wouter-based routing between Home and Transparency pages
+- Form handling with React Hook Form and Zod validation (backend ready)
 
 ### Backend Architecture
 
@@ -134,11 +142,16 @@ Preferred communication style: Simple, everyday language.
 - **clsx & tailwind-merge:** Conditional class name utilities
 - **Lucide React:** Icon library
 
-## Recent Updates (October 2025)
+## Recent Updates (October 31, 2025)
 
 **Completed Features:**
+- ✅ Dark theme implementation with Ink (#0B0E12) background and Copper/Gold accents
+- ✅ New landing page with hero section and brand identity
+- ✅ Transparency dashboard with live metrics and data visualization
+- ✅ Recharts integration for 30-day scan analytics
+- ✅ Brand component library (LogoMark, BadgePill system)
+- ✅ Wouter routing between Home and Transparency pages
 - ✅ Full verification API implementation with POST /api/verify endpoint
-- ✅ Frontend VerificationDemo component connected to real backend API
 - ✅ In-memory storage for verification history
 - ✅ End-to-end testing with Playwright (all tests passing)
 - ✅ Type-safe schema contracts between frontend and backend
