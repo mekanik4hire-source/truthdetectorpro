@@ -4,9 +4,8 @@ import path from 'path'
 import cors from 'cors'
 import { fileURLToPath } from 'url'
 
-// Handle directory path (works in both ESM dev/prod modes)
-// @ts-ignore - import.meta.url is available in ESM environments
-const currentDir = path.dirname(fileURLToPath(import.meta.url))
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 app.use(cors())
@@ -65,19 +64,12 @@ app.get('/api/metrics/timeseries', (_req, res) => {
 })
 
 // -------------------- Serve SPA (static) --------------------
-const isDev = process.env.NODE_ENV === 'development'
+// Built client is always in server/public/
+// In dev: __dirname = server/, so ./public
+// In prod: __dirname = dist/, so ../server/public
+const publicDir = path.join(__dirname, '../server/public')
 
-// Determine public directory path based on environment
-// Dev: running from server/, so public is at ./public
-// Prod: running from dist/, so public is at ../server/public
-const publicDir = isDev 
-  ? path.join(currentDir, 'public')
-  : path.join(currentDir, '../server/public')
-
-// Serve static files in both dev and prod
 app.use(express.static(publicDir))
-
-// SPA fallback — send index.html for non-API routes
 app.get('*', (_req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'))
 })
@@ -86,9 +78,4 @@ app.get('*', (_req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📁 Serving static files from: ${publicDir}`)
-  if (isDev) {
-    console.log('🔧 Development mode (serving pre-built files)')
-  } else {
-    console.log('🎯 Production mode')
-  }
 })

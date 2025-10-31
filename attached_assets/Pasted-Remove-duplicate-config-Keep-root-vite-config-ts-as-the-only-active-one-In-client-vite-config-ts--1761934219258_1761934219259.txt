@@ -1,0 +1,113 @@
+Remove duplicate config
+
+Keep root vite.config.ts as the only active one.
+
+In client/vite.config.ts, either delete it or make it a one-liner re-export:
+
+// client/vite.config.ts (optional, reference only)
+export { default } from '../vite.config'
+
+
+server/vite.ts is legacy (used for dev middleware setups).
+If you aren’t using Vite middleware in the server during dev (you’re running npm run dev:client + dev:server), you can delete server/vite.ts to avoid confusion.
+
+server/routes.ts / server/storage.ts
+
+If they’re not imported by server/index.ts, either import them or remove.
+
+Minimal pattern (in server/index.ts):
+
+// import registerRoutes from './routes.js'
+// registerRoutes(app)
+
+
+Otherwise, delete the unused files for clarity.
+
+dist/public/ symlink artifact
+
+This sometimes confuses static serving. Delete dist/public/ if it’s present—your real client files belong in server/public/ only.
+
+.gitignore (keeps your repo clean)
+
+node_modules
+dist
+server/public
+.DS_Store
+
+🔧 Confirm these file contents
+Root vite.config.ts
+
+(You’ve got this already; keep it exactly like this.)
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+export default defineConfig({
+  plugins: [react()],
+  root: path.resolve(__dirname, 'client'),
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'client/src'),
+      '@shared': path.resolve(__dirname, 'shared'),
+      '@assets': path.resolve(__dirname, 'attached_assets'),
+    },
+  },
+  build: {
+    outDir: path.resolve(__dirname, 'server/public'),
+    emptyOutDir: true,
+  },
+  server: {
+    port: 5173,
+    proxy: { '/api': 'http://localhost:5000' },
+  },
+})
+
+server/index.ts (static path for your layout)
+
+Because dist/index.js is at root /dist, the built client path must be ../server/public:
+
+// …after your /api routes
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const publicDir = path.join(__dirname, '../server/public')
+app.use(express.static(publicDir))
+app.get('*', (_req, res) => res.sendFile(path.join(publicDir, 'index.html')))
+
+server/tsconfig.json (minimal ESM)
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2019",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts"]
+}
+
+package.json scripts (root)
+
+(If you’re already using these—it matches your summary, just keep.)
+
+{
+  "scripts": {
+    "dev:client": "vite --config vite.config.ts",
+    "dev:server": "tsx watch server/index.ts",
+    "dev": "concurrently \"npm:dev:client\" \"npm:dev:server\"",
+
+    "build:client": "vite build --config vite.config.ts",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:express --external:cors",
+    "build": "npm run build:client && npm run build:server",
+
+    "start": "node dist/index.js"
+  }
+}
