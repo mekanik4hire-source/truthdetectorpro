@@ -5,32 +5,41 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { VerificationResult } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 export default function VerificationDemo() {
   const [claim, setClaim] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
+  const { toast } = useToast();
+
+  const verifyMutation = useMutation({
+    mutationFn: async (claimText: string) => {
+      const response = await apiRequest<VerificationResult>("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim: claimText }),
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      setResult(data);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Failed to verify claim. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleVerify = () => {
     if (!claim.trim()) return;
-    
-    setIsAnalyzing(true);
     setResult(null);
-
-    // Simulate analysis
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setResult({
-        verdict: "Mostly True",
-        confidence: 87,
-        status: "verified",
-        sources: [
-          { name: "Reuters Fact Check", url: "#", credibility: 95 },
-          { name: "AP News", url: "#", credibility: 92 },
-          { name: "Snopes", url: "#", credibility: 88 }
-        ]
-      });
-    }, 2000);
+    verifyMutation.mutate(claim);
   };
 
   const getStatusIcon = (status: string) => {
@@ -68,15 +77,15 @@ export default function VerificationDemo() {
                 </span>
                 <Button 
                   onClick={handleVerify} 
-                  disabled={!claim.trim() || isAnalyzing}
+                  disabled={!claim.trim() || verifyMutation.isPending}
                   data-testid="button-verify"
                 >
-                  {isAnalyzing ? "Analyzing..." : "Verify Claim"}
+                  {verifyMutation.isPending ? "Analyzing..." : "Verify Claim"}
                 </Button>
               </div>
             </div>
 
-            {isAnalyzing && (
+            {verifyMutation.isPending && (
               <div className="space-y-2" data-testid="status-analyzing">
                 <p className="text-sm font-medium">Analyzing claim...</p>
                 <Progress value={66} />

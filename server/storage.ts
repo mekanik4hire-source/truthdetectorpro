@@ -1,20 +1,22 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type User, type InsertUser, type Verification, type InsertVerification } from "@shared/schema";
 import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createVerification(verification: InsertVerification): Promise<Verification>;
+  getVerification(id: string): Promise<Verification | undefined>;
+  getAllVerifications(): Promise<Verification[]>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private verifications: Map<string, Verification>;
 
   constructor() {
     this.users = new Map();
+    this.verifications = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -32,6 +34,29 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async createVerification(insertVerification: InsertVerification): Promise<Verification> {
+    const id = randomUUID();
+    const verification: Verification = {
+      id,
+      claim: insertVerification.claim,
+      verdict: insertVerification.verdict,
+      confidence: insertVerification.confidence,
+      status: insertVerification.status,
+      sources: JSON.stringify(insertVerification.sources),
+      createdAt: new Date(),
+    };
+    this.verifications.set(id, verification);
+    return verification;
+  }
+
+  async getVerification(id: string): Promise<Verification | undefined> {
+    return this.verifications.get(id);
+  }
+
+  async getAllVerifications(): Promise<Verification[]> {
+    return Array.from(this.verifications.values());
   }
 }
 
