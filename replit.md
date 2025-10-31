@@ -50,9 +50,9 @@ Preferred communication style: Simple, everyday language.
 
 **Server Architecture:**
 - **Single-file design:** `server/index.ts` contains all server logic
-- **Dual-mode operation:** Works in both ESM (development) and CommonJS (production)
-- **Development:** Runs with `tsx` (ESM), serves API only on port 3000
-- **Production:** Compiled to CommonJS, serves API + static files on one port
+- **ESM-based:** Runs as ESM in both development and production
+- **Development:** Runs with `tsx`, serves API + pre-built static files from server/public/
+- **Production:** Bundled with esbuild to `dist/index.js`, serves API + static files from server/public/
 
 **API Structure:**
 - RESTful endpoints under `/api` prefix
@@ -68,37 +68,35 @@ Preferred communication style: Simple, everyday language.
 
 ### Development & Build System
 
-**Architecture:**
-- **Simplified single-server design** - One Express server handles all modes
-- **Development:** API-only server (port 3000), run Vite client separately
-- **Production:** Single server serves both API and static React app
+**Clean Single Build System:**
+- **Root:** Contains only npm scripts (`package.json`)
+- **Client Config:** `client/vite.config.ts` → builds to `server/public/`
+- **Server Config:** `server/tsconfig.json` (not currently used)
+- **Root Vite Config:** Minimal facade that points to client and outputs to `server/public/`
 
 **Development Workflow:**
 ```bash
-# Current workflow runs development server
-npm run dev  # Starts API on port 3000 with tsx
-
-# Run Vite client separately (optional)
-npm run dev:client  # Vite on port 5173, proxies /api to localhost:3000
+npm run dev  # Starts server with tsx, serves pre-built files from server/public/
 ```
 
 **Production Build:**
 ```bash
-# Build client
-cd client && npm run build  # Output: server/public/
+npm run build  # Runs: vite build && esbuild server/index.ts --outdir=dist
 
-# Build server
-cd server && tsc -p tsconfig.json  # Output: server/dist/index.js
-mv server/dist/index.js server/dist/index.cjs  # Rename for CommonJS
+# This creates:
+# - server/public/  (Vite output: index.html, assets/, favicon.png)
+# - dist/index.js   (esbuild output: bundled Express server)
+```
 
-# Run production
-NODE_ENV=production node server/dist/index.cjs  # Single server on port 3000
+**Production Deployment:**
+```bash
+npm start  # Runs: NODE_ENV=production node dist/index.js
 ```
 
 **Build Outputs:**
-- **Client:** `server/public/` (Vite builds static files here)
-- **Server:** `server/dist/index.cjs` (TypeScript → CommonJS)
-- **Note:** `.cjs` extension required because root `package.json` has `"type": "module"`
+- **Client (Vite):** `server/public/` - Static React app with assets
+- **Server (esbuild):** `dist/index.js` - Bundled Express server (ESM format)
+- **Path resolution:** Server resolves `server/public/` from both dev and prod modes
 
 **Path Aliases:**
 - `@/*` - Client source files

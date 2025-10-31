@@ -68,11 +68,11 @@ app.get('/api/metrics/timeseries', (_req, res) => {
 const isDev = process.env.NODE_ENV === 'development'
 
 // Determine public directory path based on environment
-// Dev: currentDir is server/, public is at server/public/
-// Prod: currentDir is server/dist/, public is at server/public/ (so ../public)
+// Dev: running from server/, so public is at ./public
+// Prod: running from dist/, so public is at ../server/public
 const publicDir = isDev 
   ? path.join(currentDir, 'public')
-  : path.join(currentDir, '../public')
+  : path.join(currentDir, '../server/public')
 
 // Serve static files in both dev and prod
 app.use(express.static(publicDir))
