@@ -17,12 +17,8 @@ export default function VerificationDemo() {
 
   const verifyMutation = useMutation({
     mutationFn: async (claimText: string) => {
-      const response = await apiRequest<VerificationResult>("/api/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claim: claimText }),
-      });
-      return response;
+      const response = await apiRequest("POST", "/api/verify", { claim: claimText });
+      return response.json();
     },
     onSuccess: (data) => {
       setResult(data);
