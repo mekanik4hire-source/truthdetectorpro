@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/Home";
 import Transparency from "@/pages/Transparency";
+import VaultViewer from "@/pages/VaultViewer";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -12,6 +13,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/transparency" component={Transparency} />
+      <Route path="/vault/:id" component={VaultViewer} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -5,8 +5,10 @@ import {
   Activity,
   BarChart3,
   ArrowLeft,
+  FileText,
 } from "lucide-react";
 import { Link } from "wouter";
+import ExportEvidenceButton from "@/components/ExportEvidenceButton";
 import {
   AreaChart,
   Area,
@@ -134,6 +136,26 @@ export default function Transparency() {
         ) : (
           <div className="h-64 flex items-center justify-center text-white/60">Loading chart data...</div>
         )}
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="h-5 w-5 text-[#C69C6D]" />
+          <h3 className="text-lg font-semibold">Evidence Vault Demo</h3>
+        </div>
+        <p className="text-white/70 mb-4">
+          Test the Evidence Vault by exporting a sample fact-check result. This creates a permanent, shareable document with a cryptographic hash.
+        </p>
+        <ExportEvidenceButton 
+          payload={{
+            claim: "TruthDetectorPro has 99.97% uptime",
+            verdict: "TRUE",
+            confidence: 99,
+            sources: ["Transparency Dashboard", "Live Metrics API"],
+            timestamp: new Date().toISOString(),
+            metrics: summary
+          }}
+        />
       </div>
     </div>
   );
