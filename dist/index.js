@@ -30,7 +30,10 @@ setInterval(() => {
   const risk = Math.round(bump * (0.1 + Math.random() * 0.1));
   metrics.scans30d += bump;
   metrics.risky30d += risk;
-  metrics.avgTTVms = Math.max(480, Math.min(1200, metrics.avgTTVms + (Math.random() - 0.5) * 40));
+  metrics.avgTTVms = Math.max(
+    480,
+    Math.min(1200, metrics.avgTTVms + (Math.random() - 0.5) * 40)
+  );
   const today = timeseries[timeseries.length - 1];
   today.scans += bump;
   today.risky += risk;
@@ -84,16 +87,19 @@ app.get("/api/vault/:id/download", (req, res) => {
   const doc = vaultStore.get(req.params.id);
   if (!doc) return res.status(404).json({ ok: false, error: "not_found" });
   res.setHeader("Content-Type", "application/json");
-  res.setHeader("Content-Disposition", `attachment; filename="tdp_evidence_${doc.id}.json"`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="tdp_evidence_${doc.id}.json"`
+  );
   res.send(JSON.stringify(doc, null, 2));
 });
 app.get("/vault/:id", (_req, res, next) => next());
-var publicDir = path.join(__dirname, "../server/public");
+var publicDir = path.resolve(__dirname, "..", "server", "public");
 app.use(express.static(publicDir));
-app.get("*", (_req, res) => {
+app.get(/^\/(?!api\/).*/, (_req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));
 });
 app.listen(PORT, () => {
-  console.log(`\u{1F680} Server running at http://localhost:${PORT}`);
+  console.log(`\u2705 Server running on port ${PORT}`);
   console.log(`\u{1F4C1} Serving static files from: ${publicDir}`);
 });
