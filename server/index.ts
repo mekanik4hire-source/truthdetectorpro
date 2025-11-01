@@ -63,6 +63,60 @@ app.get('/api/metrics/timeseries', (_req, res) => {
   res.json({ points: timeseries })
 })
 
+// -------- Evidence Vault (demo in-memory store) --------
+type VaultDoc = {
+  id: string
+  createdAt: string
+  hash: string
+  payload: any
+}
+
+const vaultStore = new Map<string, VaultDoc>()
+
+function randomId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+function shaStub() {
+  return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10)
+}
+
+// Create/export a document
+app.post('/api/vault/export', (req, res) => {
+  try {
+    const id = randomId()
+    const doc: VaultDoc = {
+      id,
+      createdAt: new Date().toISOString(),
+      hash: shaStub(),
+      payload: req.body ?? {}
+    }
+    vaultStore.set(id, doc)
+    const base = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`
+    res.json({
+      ok: true,
+      id,
+      viewUrl: `${base}/vault/${id}`,
+      downloadUrl: `${base}/api/vault/${id}/download`
+    })
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ ok: false, error: 'export_failed' })
+  }
+})
+
+// Download JSON
+app.get('/api/vault/:id/download', (req, res) => {
+  const doc = vaultStore.get(req.params.id)
+  if (!doc) return res.status(404).json({ ok: false, error: 'not_found' })
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('Content-Disposition', `attachment; filename="tdp_evidence_${doc.id}.json"`)
+  res.send(JSON.stringify(doc, null, 2))
+})
+
+// Minimal HTML viewer (works without extra React route)
+app.get('/vault/:id', (_req, res, next) => next()) // let SPA handle path
+
 // -------------------- Serve SPA (static) --------------------
 // Built client is always in server/public/
 // In dev: __dirname = server/, so ./public

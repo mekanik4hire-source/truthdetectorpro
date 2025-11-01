@@ -58,6 +58,9 @@ Preferred communication style: Simple, everyday language.
 - RESTful endpoints under `/api` prefix
 - GET `/api/metrics/summary` - Live transparency metrics (uptime, accuracy, scans, risky rate)
 - GET `/api/metrics/timeseries` - 30-day historical data for charts
+- POST `/api/vault/export` - Create evidence document, returns ID and URLs
+- GET `/api/vault/:id/download` - Download evidence as JSON file
+- GET `/vault/:id` - View evidence in web viewer (SPA route)
 - Mock data with live updates every 8 seconds for demo purposes
 
 **Metrics System:**
