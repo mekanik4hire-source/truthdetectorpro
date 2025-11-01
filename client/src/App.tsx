@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/Home";
 import Transparency from "@/pages/Transparency";
 import VaultViewer from "@/pages/VaultViewer";
+import Install from "@/pages/Install";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/transparency" component={Transparency} />
       <Route path="/vault/:id" component={VaultViewer} />
+      <Route path="/install" component={Install} />
       <Route component={NotFound} />
     </Switch>
   );
