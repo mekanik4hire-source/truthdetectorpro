@@ -9,13 +9,35 @@ chrome.runtime.onInstalled.addListener(() => {
   setBadgeActive();
 });
 
-// Update badge when extension starts
+// Also set badge when service worker starts (after browser restart, etc)
+chrome.runtime.onStartup.addListener(() => {
+  console.log('[TDP Background] Browser startup detected');
+  setBadgeActive();
+});
+
+// Set initial badge immediately
 setBadgeActive();
 
 function setBadgeActive() {
-  chrome.action.setBadgeText({ text: 'ON' });
-  chrome.action.setBadgeBackgroundColor({ color: '#2AD17B' }); // Safe green
-  console.log('[TDP Background] Badge set to ON');
+  try {
+    chrome.action.setBadgeText({ text: 'ON' }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('[TDP Background] Badge text error:', chrome.runtime.lastError);
+      } else {
+        console.log('[TDP Background] Badge text set to ON');
+      }
+    });
+    
+    chrome.action.setBadgeBackgroundColor({ color: '#2AD17B' }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('[TDP Background] Badge color error:', chrome.runtime.lastError);
+      } else {
+        console.log('[TDP Background] Badge color set to green');
+      }
+    });
+  } catch (error) {
+    console.error('[TDP Background] Error setting badge:', error);
+  }
 }
 
 // Listen for tab updates to log navigation
@@ -51,8 +73,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.type === 'RISK_DETECTED') {
     // Update badge to show risk count
-    chrome.action.setBadgeText({ text: String(message.count), tabId: sender.tab?.id });
-    chrome.action.setBadgeBackgroundColor({ color: '#FFB020', tabId: sender.tab?.id }); // Warn orange
+    const tabId = sender.tab?.id;
+    chrome.action.setBadgeText({ text: String(message.count), tabId: tabId });
+    chrome.action.setBadgeBackgroundColor({ color: '#FFB020', tabId: tabId }); // Warn orange
+    console.log(`[TDP Background] Badge updated to ${message.count} for tab ${tabId}`);
     
     // Store detection
     const detection = {
@@ -71,9 +95,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   } else if (message.type === 'NO_RISKS') {
     // Reset badge to ON when page is clean
-    chrome.action.setBadgeText({ text: 'ON', tabId: sender.tab?.id });
-    chrome.action.setBadgeBackgroundColor({ color: '#2AD17B', tabId: sender.tab?.id }); // Safe green
-    console.log('[TDP Background] Badge reset to ON (clean page)');
+    const tabId = sender.tab?.id;
+    chrome.action.setBadgeText({ text: 'ON', tabId: tabId });
+    chrome.action.setBadgeBackgroundColor({ color: '#2AD17B', tabId: tabId }); // Safe green
+    console.log(`[TDP Background] Badge reset to ON for tab ${tabId}`);
   }
   
   sendResponse({ received: true });

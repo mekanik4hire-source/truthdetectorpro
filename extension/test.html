@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TruthDetectorPro Extension Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    h2 { color: #666; }
+    .pass { color: #2AD17B; font-weight: bold; }
+    .warn { color: #FFB020; font-weight: bold; }
+    code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Scam Radar Extension Test</h1>
+  
+  <div class="test-section">
+    <h2>Test 1: Badge Should Show "ON" (Green)</h2>
+    <p>This page is clean - no risky content detected.</p>
+    <p class="pass">✅ Expected: Badge shows "ON" in green</p>
+    <p><strong>How to check:</strong></p>
+    <ol>
+      <li>Look at the extension icon in Chrome toolbar</li>
+      <li>You should see a small green badge with "ON"</li>
+      <li>Open DevTools → Console tab</li>
+      <li>Look for: <code>[TDP Content] No risks detected on this page</code></li>
+    </ol>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Trigger Risk Detection</h2>
+    <p class="warn">⚠️ PHISHING TEST: Please verify your account immediately! Urgent action required!</p>
+    <p>This text contains phishing phrases that should trigger the extension.</p>
+    <p class="warn">⚠️ Expected: Badge shows "2" or "3" in orange</p>
+  </div>
+
+  <div class="test-section">
+    <h2>Troubleshooting Steps</h2>
+    <ol>
+      <li><strong>Check Extension is Loaded:</strong>
+        <ul>
+          <li>Go to <code>chrome://extensions</code></li>
+          <li>Look for "TruthDetectorPro - Scam Radar"</li>
+          <li>Make sure it's ENABLED (toggle switch is blue)</li>
+        </ul>
+      </li>
+      <li><strong>Check Service Worker:</strong>
+        <ul>
+          <li>On <code>chrome://extensions</code></li>
+          <li>Find the extension card</li>
+          <li>Click "service worker" link (blue text)</li>
+          <li>DevTools will open showing background script logs</li>
+          <li>Look for: <code>[TDP Background] Service worker started</code></li>
+          <li>Look for: <code>[TDP Background] Badge text set to ON</code></li>
+        </ul>
+      </li>
+      <li><strong>Reload Extension:</strong>
+        <ul>
+          <li>Click the circular reload icon ⟳ on the extension card</li>
+          <li>Refresh this page (F5)</li>
+          <li>Check badge again</li>
+        </ul>
+      </li>
+      <li><strong>Check Console Logs:</strong>
+        <ul>
+          <li>Right-click this page → Inspect</li>
+          <li>Go to Console tab</li>
+          <li>Look for <code>[TDP Content]</code> messages</li>
+          <li>If you see errors, note what they say</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <div class="test-section">
+    <h2>Expected Console Messages</h2>
+    <p><strong>On clean page:</strong></p>
+    <pre><code>[TDP Content] Script loaded on: file:///.../test.html
+[TDP Content] No risks detected on this page</code></pre>
+    
+    <p><strong>On risky page (reload after scrolling to Test 2):</strong></p>
+    <pre><code>[TDP Content] Script loaded on: file:///.../test.html
+[TDP Content] Risks detected: [{type: "phishing_phrase", ...}]</code></pre>
+  </div>
+</body>
+</html>
