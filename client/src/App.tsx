@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Transparency from "@/pages/Transparency";
 import VaultViewer from "@/pages/VaultViewer";
 import Install from "@/pages/Install";
+import ExtensionDev from "@/pages/ExtensionDev";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/transparency" component={Transparency} />
       <Route path="/vault/:id" component={VaultViewer} />
       <Route path="/install" component={Install} />
+      <Route path="/docs/extension-dev" component={ExtensionDev} />
       <Route component={NotFound} />
     </Switch>
   );

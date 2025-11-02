@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import {
   ShieldCheck,
   Eye,
+  Download,
+  Zap,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -35,21 +37,35 @@ export default function Home() {
             Scan links, images, videos, and messages. Get a plain-English verdict with
             a confidence score—and export receipts to prove it.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/transparency"
-              data-testid="button-add-to-browser"
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#2AD17B] px-5 py-3 text-black font-semibold hover:brightness-95 transition"
-            >
-              <ShieldCheck className="h-5 w-5" /> Add to Browser
-            </Link>
-            <Link
-              href="/transparency"
-              data-testid="link-transparency"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 px-5 py-3 hover:bg-white/10 transition"
-            >
-              <Eye className="h-5 w-5" /> View Transparency Dashboard
-            </Link>
+          
+          <div className="mt-8 flex flex-col gap-4">
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/install"
+                data-testid="button-install-pwa"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#2AD17B] px-5 py-3 text-black font-semibold hover:brightness-95 transition"
+              >
+                <Download className="h-5 w-5" /> Install App (PWA)
+              </Link>
+              <Link
+                href="/docs/extension-dev"
+                data-testid="button-add-extension"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#C69C6D] px-5 py-3 text-black font-semibold hover:brightness-95 transition"
+              >
+                <Zap className="h-5 w-5" /> Add Scam Radar (Extension)
+              </Link>
+              <Link
+                href="/transparency"
+                data-testid="link-transparency"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 px-5 py-3 hover:bg-white/10 transition"
+              >
+                <Eye className="h-5 w-5" /> View Transparency
+              </Link>
+            </div>
+            <p className="text-sm text-white/60 max-w-2xl">
+              <strong>On-demand checks:</strong> Install the app for manual fact verification. 
+              <strong className="ml-2">Background scanning:</strong> Add the Chrome/Edge extension for always-on protection.
+            </p>
           </div>
         </Container>
       </Section>
