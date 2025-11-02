@@ -1,0 +1,402 @@
+Where to put it: create src/BuildPlanForm.jsx (or drop into your existing React client), import it in your page (e.g., App.jsx) and render <BuildPlanForm />.
+
+// src/BuildPlanForm.jsx
+import React, { useMemo, useState, useEffect } from "react";
+
+/** Minimal styles so it looks good without Tailwind */
+const S = {
+  page: { maxWidth: 1100, margin: "24px auto", padding: 24, fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", lineHeight: 1.45 },
+  h1: { fontSize: 28, margin: "0 0 8px" },
+  sub: { color: "#666", marginBottom: 24 },
+  bar: { display: "flex", gap: 8, flexWrap: "wrap", margin: "0 0 16px" },
+  btn: { padding: "8px 12px", border: "1px solid #ccc", borderRadius: 8, background: "#fafafa", cursor: "pointer" },
+  btnPrimary: { padding: "8px 12px", border: "1px solid #3b82f6", borderRadius: 8, background: "#3b82f6", color: "white", cursor: "pointer" },
+  grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+  card: { border: "1px solid #e5e7eb", borderRadius: 12, padding: 16, background: "white" },
+  row: { display: "grid", gridTemplateColumns: "120px 1fr", gap: 10, margin: "6px 0" },
+  label: { color: "#374151", fontWeight: 600 },
+  input: { width: "100%", padding: 8, border: "1px solid #d1d5db", borderRadius: 8 },
+  select: { width: "100%", padding: 8, border: "1px solid #d1d5db", borderRadius: 8, background: "white" },
+  textarea: { width: "100%", padding: 10, minHeight: 90, border: "1px solid #d1d5db", borderRadius: 8, fontFamily: "inherit" },
+  tagRow: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 },
+  tag: { padding: "2px 8px", border: "1px solid #e5e7eb", borderRadius: 999, fontSize: 12, color: "#374151", background: "#f9fafb" },
+  dep: { fontSize: 12, color: "#6b7280" },
+  hr: { border: 0, borderTop: "1px solid #eee", margin: "16px 0" },
+  small: { fontSize: 12, color: "#6b7280" },
+};
+
+const STATUSES = ["Planned", "In Progress", "Ready", "Shipped"];
+const OWNERS = ["Guy", "Deanna", "Contractor", "TBD"];
+
+const DEFAULT_ITEMS = [
+  {
+    id: "pwa-shell",
+    area: "PWA",
+    title: "PWA Shell + Install Flow",
+    summary: "Installable app with service worker, manifest, offline shell, and /install page.",
+    status: "In Progress",
+    owner: "Guy",
+    due: "2025-11-07",
+    deps: [],
+    acceptance: [
+      "Manifest valid (icons 192/512, screenshots 1280×720 & 1080×1920)",
+      "Service worker 'activated' and controls page",
+      "Install prompt appears via beforeinstallprompt",
+    ],
+  },
+  {
+    id: "pwa-ondemand-check",
+    area: "PWA",
+    title: "On-Demand Fact Checks",
+    summary: "User submits links/files → server runs fact verification and returns a verdict + sources.",
+    status: "In Progress",
+    owner: "Guy",
+    due: "2025-11-12",
+    deps: ["pwa-shell"],
+    acceptance: [
+      "Form accepts URL/file",
+      "Returns structured verdict (Pass/Warning/Fail) + sources",
+      "Error states covered (timeouts, invalid input)",
+    ],
+  },
+  {
+    id: "ext-mv3-skeleton",
+    area: "Extension (Scam Radar)",
+    title: "MV3 Skeleton + Always-ON Badge",
+    summary: "Background service worker + content script on all pages. Badge shows 'ON'. Logs prove execution.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-11-10",
+    deps: [],
+    acceptance: [
+      "manifest.json with host_permissions ['<all_urls>']",
+      "content.js logs current URL on any site",
+      "background.js sets badge 'ON' and logs navigations",
+    ],
+  },
+  {
+    id: "ext-risk-stub",
+    area: "Extension (Scam Radar)",
+    title: "Risk Rules Stub + In-Page Ribbon",
+    summary: "Tiny local rules (e.g., phishing phrases) and a non-intrusive ribbon when a risk triggers.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-11-13",
+    deps: ["ext-mv3-skeleton"],
+    acceptance: [
+      "Simple phrase/rule matches",
+      "Ribbon can be dismissed",
+      "No data leaves device",
+    ],
+  },
+  {
+    id: "reports-daily",
+    area: "Daily Risk Report",
+    title: "Local Storage + Export",
+    summary: "Store detections (date, URL, rule). Export JSON/CSV; email cron later.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-11-15",
+    deps: ["ext-risk-stub"],
+    acceptance: [
+      "Detections aggregated per day",
+      "Export JSON/CSV from extension action popup",
+      "Privacy note: all local by default",
+    ],
+  },
+  {
+    id: "recovery-flow",
+    area: "One-Tap Recovery",
+    title: "Recovery Wizard + Evidence Packet",
+    summary: "Guided flow that compiles screenshots/URLs/timestamps and drafts dispute letters.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-11-20",
+    deps: ["reports-daily"],
+    acceptance: [
+      "Wizard pages (What happened? Where? When?)",
+      "Generates PDF with timeline + letter template",
+      "Downloadable ZIP of evidence",
+    ],
+  },
+  {
+    id: "pro-tier",
+    area: "Pro Tier",
+    title: "Unlimited Deep Scans + Auto-Block",
+    summary: "Paywall unlocks rich media scans and optional auto-block list.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-12-05",
+    deps: ["ext-risk-stub"],
+    acceptance: [
+      "Free = 5 scans/mo, Pro = unlimited",
+      "Stripe test mode OK",
+      "Toggle for auto-block (user-controlled)",
+    ],
+  },
+  {
+    id: "privacy-copy",
+    area: "Trust & Compliance",
+    title: "Privacy-First Copy + Controls",
+    summary: "Public explanation, pause switch, data retention notes (local by default).",
+    status: "Ready",
+    owner: "Guy",
+    due: "2025-11-06",
+    deps: [],
+    acceptance: [
+      "Landing copy states: runs locally, no tracking",
+      "Settings: Pause/Disable/See logs",
+      "Clear 'PWA = on-demand, Extension = background'",
+    ],
+  },
+  {
+    id: "webstore",
+    area: "Distribution",
+    title: "Chrome Web Store Listing",
+    summary: "Store listing with screenshots, permissions rationale, and privacy disclosure.",
+    status: "Planned",
+    owner: "Guy",
+    due: "2025-12-10",
+    deps: ["ext-mv3-skeleton", "privacy-copy"],
+    acceptance: [
+      "Assets: 1280×800 screenshots, 128×128 icon",
+      "Permissions justification matches behavior",
+      "Store privacy declaration completed",
+    ],
+  },
+];
+
+const STORAGE_KEY = "tdp_buildplan_v1";
+
+function useLocalPlan() {
+  const [items, setItems] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : DEFAULT_ITEMS;
+    } catch {
+      return DEFAULT_ITEMS;
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
+  return [items, setItems];
+}
+
+function groupByArea(items) {
+  const map = {};
+  for (const it of items) {
+    if (!map[it.area]) map[it.area] = [];
+    map[it.area].push(it);
+  }
+  return map;
+}
+
+function toMarkdown(items) {
+  const byArea = groupByArea(items);
+  let md = `# TruthDetectorPro – Build Plan\n\nGenerated ${new Date().toLocaleString()}\n\n`;
+  Object.keys(byArea).sort().forEach(area => {
+    md += `## ${area}\n`;
+    for (const it of byArea[area]) {
+      md += `### ${it.title}  \n`;
+      md += `**Status:** ${it.status} • **Owner:** ${it.owner} • **Due:** ${it.due || "TBD"}\n\n`;
+      md += `${it.summary}\n\n`;
+      if (it.deps?.length) md += `**Depends on:** ${it.deps.join(", ")}\n\n`;
+      if (it.acceptance?.length) {
+        md += `**Acceptance Criteria:**\n`;
+        for (const a of it.acceptance) md += `- ${a}\n`;
+        md += `\n`;
+      }
+    }
+    md += `\n`;
+  });
+  return md;
+}
+
+export default function BuildPlanForm() {
+  const [items, setItems] = useLocalPlan();
+  const [filter, setFilter] = useState("All");
+  const [q, setQ] = useState("");
+
+  const areas = useMemo(() => ["All", ...Array.from(new Set(items.map(i => i.area)))], [items]);
+
+  const filtered = useMemo(() => {
+    return items.filter(i => {
+      if (filter !== "All" && i.area !== filter) return false;
+      if (!q) return true;
+      const hay = `${i.title} ${i.summary} ${i.area} ${i.status} ${i.owner} ${i.deps?.join(" ")}`.toLowerCase();
+      return hay.includes(q.toLowerCase());
+    });
+  }, [items, filter, q]);
+
+  const byArea = useMemo(() => groupByArea(filtered), [filtered]);
+
+  const setField = (id, field, value) => {
+    setItems(prev => prev.map(it => (it.id === id ? { ...it, [field]: value } : it)));
+  };
+
+  const addItem = () => {
+    const id = `custom-${Date.now()}`;
+    setItems(prev => [
+      ...prev,
+      {
+        id,
+        area: "Custom",
+        title: "New Item",
+        summary: "",
+        status: "Planned",
+        owner: "TBD",
+        due: "",
+        deps: [],
+        acceptance: [],
+      },
+    ]);
+  };
+
+  const downloadJSON = () => {
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "truthdetectorpro_build_plan.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyMarkdown = async () => {
+    const md = toMarkdown(items);
+    await navigator.clipboard.writeText(md);
+    alert("Markdown summary copied!");
+  };
+
+  const resetPlan = () => {
+    if (confirm("Reset to default items?")) setItems(DEFAULT_ITEMS);
+  };
+
+  return (
+    <div style={S.page}>
+      <h1 style={S.h1}>TruthDetectorPro – Build Plan</h1>
+      <div style={S.sub}>Single-source of truth for what we’re building and why it matters. Edit inline; changes auto-save.</div>
+
+      <div style={S.bar}>
+        <select style={S.select} value={filter} onChange={e => setFilter(e.target.value)}>
+          {areas.map(a => <option key={a}>{a}</option>)}
+        </select>
+        <input style={S.input} placeholder="Search features, status, owner…" value={q} onChange={e => setQ(e.target.value)} />
+        <button style={S.btn} onClick={addItem}>+ Add item</button>
+        <button style={S.btn} onClick={resetPlan}>Reset defaults</button>
+        <button style={S.btn} onClick={downloadJSON}>Download JSON</button>
+        <button style={S.btnPrimary} onClick={copyMarkdown}>Copy Markdown Summary</button>
+      </div>
+
+      {Object.keys(byArea).sort().map(area => (
+        <div key={area} style={{ marginBottom: 24 }}>
+          <h2 style={{ margin: "8px 0 12px" }}>{area}</h2>
+          <div style={S.grid}>
+            {byArea[area].map(it => (
+              <div key={it.id} style={S.card}>
+                <div style={S.row}>
+                  <div style={S.label}>Title</div>
+                  <input style={S.input} value={it.title} onChange={e => setField(it.id, "title", e.target.value)} />
+                </div>
+                <div style={S.row}>
+                  <div style={S.label}>Summary</div>
+                  <textarea style={S.textarea} value={it.summary} onChange={e => setField(it.id, "summary", e.target.value)} />
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Area</div>
+                  <input style={S.input} value={it.area} onChange={e => setField(it.id, "area", e.target.value)} />
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Status</div>
+                  <select style={S.select} value={it.status} onChange={e => setField(it.id, "status", e.target.value)}>
+                    {STATUSES.map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Owner</div>
+                  <select style={S.select} value={it.owner} onChange={e => setField(it.id, "owner", e.target.value)}>
+                    {OWNERS.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Due</div>
+                  <input type="date" style={S.input} value={it.due || ""} onChange={e => setField(it.id, "due", e.target.value)} />
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Depends on</div>
+                  <input
+                    style={S.input}
+                    placeholder="Comma-separated ids (e.g., pwa-shell, ext-mv3-skeleton)"
+                    value={(it.deps || []).join(", ")}
+                    onChange={e => setField(it.id, "deps", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                  />
+                </div>
+
+                <div style={S.row}>
+                  <div style={S.label}>Acceptance</div>
+                  <textarea
+                    style={S.textarea}
+                    placeholder="One bullet per line"
+                    value={(it.acceptance || []).join("\n")}
+                    onChange={e => setField(it.id, "acceptance", e.target.value.split("\n").map(s => s.trim()).filter(Boolean))}
+                  />
+                </div>
+
+                <div style={S.tagRow}>
+                  <span style={S.tag}>{it.status}</span>
+                  <span style={S.tag}>Owner: {it.owner}</span>
+                  {it.deps?.length ? <span style={S.tag}>Deps: {it.deps.length}</span> : null}
+                </div>
+                {it.deps?.length ? <div style={{...S.dep, marginTop: 6}}>Depends on: {it.deps.join(", ")}</div> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <hr style={S.hr} />
+
+      <DetailsPanel items={items} />
+    </div>
+  );
+}
+
+function DetailsPanel({ items }) {
+  const totals = useMemo(() => {
+    const byStatus = {};
+    for (const s of STATUSES) byStatus[s] = 0;
+    for (const it of items) byStatus[it.status] = (byStatus[it.status] || 0) + 1;
+    const pct = (n) => {
+      const done = (items.filter(i => i.status === "Shipped").length);
+      const ready = (items.filter(i => i.status === "Ready").length);
+      const total = items.length || 1;
+      return Math.round(((done + ready * 0.5) / total) * 100);
+    };
+    return { byStatus, progress: pct() };
+  }, [items]);
+
+  const roadmap = useMemo(() => toMarkdown(items), [items]);
+
+  return (
+    <div>
+      <h3 style={{ margin: "8px 0 6px" }}>Progress Snapshot</h3>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+        {STATUSES.map(s => (
+          <div key={s} style={{ border: "1px solid #eee", borderRadius: 10, padding: "8px 12px", background: "#fbfbfb" }}>
+            <strong>{s}:</strong> {totals.byStatus[s]}
+          </div>
+        ))}
+        <div style={{ border: "1px solid #3b82f6", borderRadius: 10, padding: "8px 12px", background: "#eff6ff", color: "#1d4ed8" }}>
+          Overall Progress ≈ <strong>{totals.progress}%</strong>
+        </div>
+      </div>
+
+      <h3 style={{ margin: "8px 0 6px" }}>README / Roadmap (Markdown)</h3>
+      <p style={S.small}>This is auto-generated from the form above. Copy into your repo’s README or /about page.</p>
+      <textarea style={{...S.textarea, minHeight: 220}} readOnly value={roadmap} />
+    </div>
+  );
