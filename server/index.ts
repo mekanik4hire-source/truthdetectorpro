@@ -137,18 +137,16 @@ app.get("/api/vault/:id/download", (req, res) => {
 app.get("/vault/:id", (_req, res, next) => next()); // let SPA handle path
 
 // -------------------- Serve SPA (static) --------------------
-// Built client is always in server/public/
-// In dev: __dirname = server/, so ./public
-// In prod: __dirname = dist/, so ../server/public
-const publicDir = path.resolve(__dirname, "..", "server", "public");
+// Serve everything under /server/public at the web root
+app.use(express.static(path.join(process.cwd(), "server", "public")));
 
-app.use(express.static(publicDir));
-app.get(/^\/(?!api\/).*/, (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+// Keep the SPA fallback LAST (catch-all for client-side routing)
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(process.cwd(), "server", "public", "index.html"));
 });
 
 // -------------------- Start --------------------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📁 Serving static files from: ${publicDir}`);
+  console.log(`📁 Serving static files from: server/public/`);
 });

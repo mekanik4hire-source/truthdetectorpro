@@ -94,12 +94,11 @@ app.get("/api/vault/:id/download", (req, res) => {
   res.send(JSON.stringify(doc, null, 2));
 });
 app.get("/vault/:id", (_req, res, next) => next());
-var publicDir = path.resolve(__dirname, "..", "server", "public");
-app.use(express.static(publicDir));
-app.get(/^\/(?!api\/).*/, (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+app.use(express.static(path.join(process.cwd(), "server", "public")));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(process.cwd(), "server", "public", "index.html"));
 });
 app.listen(PORT, () => {
   console.log(`\u2705 Server running on port ${PORT}`);
-  console.log(`\u{1F4C1} Serving static files from: ${publicDir}`);
+  console.log(`\u{1F4C1} Serving static files from: server/public/`);
 });
