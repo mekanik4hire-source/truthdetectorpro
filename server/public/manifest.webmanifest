@@ -15,8 +15,18 @@
   ],
   "categories": ["news", "utilities", "productivity"],
   "screenshots": [
-    { "src": "/screenshots/wide-landing.png", "type": "image/png", "sizes": "1280x720", "form_factor": "wide" },
-    { "src": "/screenshots/mobile-landing.png", "type": "image/png", "sizes": "640x1136", "form_factor": "narrow" }
+    {
+      "src": "/screenshots/wide-landing.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile-landing.png",
+      "type": "image/png",
+      "sizes": "640x1136",
+      "form_factor": "narrow"
+    }
   ],
   "shortcuts": [
     {
