@@ -29,6 +29,24 @@
         window.deferredPrompt = null;
       });
     </script>
+    <script>
+(function(){
+  if (!('serviceWorker' in navigator)) {
+    console.error('[SW] Not supported in this browser');
+    return;
+  }
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log('[SW] registered:', reg.scope);
+      // Force update check once on load
+      reg.update().catch(()=>{});
+    } catch (err) {
+      console.error('[SW] register failed:', err);
+    }
+  });
+})();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

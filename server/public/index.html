@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script defer data-domain="truthdetectorpro.onrender.com" src="https://plausible.io/js/script.js"></script>
-    <script type="module" crossorigin src="/assets/index-Bv7ffgpZ.js"></script>
+    <script type="module" crossorigin src="/assets/index-B2ZfKd00.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-_oDjxOC1.css">
   </head>
   <body>
@@ -30,6 +30,24 @@
         console.log('[PWA] App installed successfully');
         window.deferredPrompt = null;
       });
+    </script>
+    <script>
+(function(){
+  if (!('serviceWorker' in navigator)) {
+    console.error('[SW] Not supported in this browser');
+    return;
+  }
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log('[SW] registered:', reg.scope);
+      // Force update check once on load
+      reg.update().catch(()=>{});
+    } catch (err) {
+      console.error('[SW] register failed:', err);
+    }
+  });
+})();
     </script>
   </body>
 </html>
