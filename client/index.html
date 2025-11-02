@@ -18,6 +18,17 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('[BIP] event fired', e);
+        window.deferredPrompt = e;
+      });
+      
+      window.addEventListener('appinstalled', () => {
+        console.log('[PWA] App installed successfully');
+        window.deferredPrompt = null;
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
