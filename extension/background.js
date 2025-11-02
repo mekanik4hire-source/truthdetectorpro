@@ -51,8 +51,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.type === 'RISK_DETECTED') {
     // Update badge to show risk count
-    chrome.action.setBadgeText({ text: String(message.count) });
-    chrome.action.setBadgeBackgroundColor({ color: '#FFB020' }); // Warn orange
+    chrome.action.setBadgeText({ text: String(message.count), tabId: sender.tab?.id });
+    chrome.action.setBadgeBackgroundColor({ color: '#FFB020', tabId: sender.tab?.id }); // Warn orange
     
     // Store detection
     const detection = {
@@ -69,6 +69,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log('[TDP Background] Stored risk detection');
       });
     });
+  } else if (message.type === 'NO_RISKS') {
+    // Reset badge to ON when page is clean
+    chrome.action.setBadgeText({ text: 'ON', tabId: sender.tab?.id });
+    chrome.action.setBadgeBackgroundColor({ color: '#2AD17B', tabId: sender.tab?.id }); // Safe green
+    console.log('[TDP Background] Badge reset to ON (clean page)');
   }
   
   sendResponse({ received: true });

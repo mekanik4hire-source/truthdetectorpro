@@ -9,7 +9,10 @@
 - **Smart Detection**: Identifies common phishing phrases, suspicious URLs, and insecure forms
 - **Visual Warnings**: Non-intrusive ribbon at top of page when risks detected
 - **Daily Reports**: Track what you encountered and export as JSON
-- **Badge Status**: Shows "ON" (green) when active, or risk count (orange) when threats found
+- **Badge Status**: 
+  - Shows "ON" (green) when scanning clean pages
+  - Shows risk count (orange) when threats detected on current tab
+  - Resets to "ON" when navigating to safe pages
 
 ## 🚀 Installation (Development)
 

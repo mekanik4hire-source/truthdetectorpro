@@ -87,6 +87,11 @@ setTimeout(() => {
     showWarningRibbon(risks);
   } else {
     console.log('[TDP Content] No risks detected on this page');
+    
+    // Notify background script to reset badge to ON
+    chrome.runtime.sendMessage({
+      type: 'NO_RISKS'
+    });
   }
 }, 1000);
 

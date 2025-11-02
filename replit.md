@@ -2,7 +2,10 @@
 
 ## Overview
 
-TruthDetectorPro is an AI-powered fact-checking and verification platform that allows users to submit claims and receive instant verification results with confidence scores, verdicts, and supporting sources. The application features a modern dark-themed landing page with a transparency dashboard.
+TruthDetectorPro is an AI-powered fact-checking and verification platform with **two deployment options**:
+
+1. **PWA (Progressive Web App)** - Installable website for on-demand fact checks
+2. **Chrome Extension (Scam Radar)** - Always-on background protection with automatic risk detection
 
 The platform is built as a full-stack web application with a React TypeScript frontend and Express backend, designed to provide fast, accurate fact-checking capabilities with a distinctive dark theme featuring ink backgrounds (#0B0E12) and copper/gold accents (#C69C6D).
 
@@ -163,6 +166,70 @@ npm start  # Runs: NODE_ENV=production node dist/index.js
 - **date-fns:** Date manipulation utilities
 - **clsx & tailwind-merge:** Conditional class name utilities
 - **Lucide React:** Icon library
+
+## Chrome Extension (Scam Radar)
+
+**Location:** `/extension` folder (version-controlled, not deployed to Render)
+
+**Installation:** Developer mode only (Load Unpacked from `chrome://extensions`)
+
+### Architecture
+
+**Manifest V3 Extension** with three core components:
+- `background.js` - Service worker running continuously, sets badge to "ON"
+- `content.js` - Injected into all webpages, scans for risk patterns
+- `popup.html/js/css` - Extension popup showing stats and controls
+
+### Features
+
+**Local Risk Detection** (Privacy-first):
+- Phishing phrase patterns: "verify your account", "urgent action required"
+- Suspicious URL patterns: typosquatting, lookalike domains
+- Insecure password fields (HTTP pages)
+- All scanning happens on device - no data sent to servers
+
+**Visual Feedback:**
+- Badge shows "ON" (green) or risk count (orange)
+- Dismissible warning ribbon at top of risky pages
+- Popup displays daily stats and recent activity
+
+**Data Management:**
+- Navigation log stored in `chrome.storage.local` (last 100 entries)
+- Detections stored with timestamp, URL, and risk details
+- Export as JSON from popup
+- Clear history option
+
+### Integration with PWA
+
+- Extension can trigger deep scans via existing `/api/vault/export` endpoint
+- Results stored in Evidence Vault for long-term tracking
+- Two complementary tools: PWA for manual checks, Extension for automatic monitoring
+
+### Files
+
+```
+extension/
+├── manifest.json       # MV3 configuration with <all_urls> permissions
+├── background.js       # Service worker (2.4 KB)
+├── content.js          # Page scanner (4.3 KB)
+├── popup.html          # Extension UI (1.7 KB)
+├── popup.js            # Popup logic (3.9 KB)
+├── popup.css           # Dark theme styling (3.1 KB)
+├── icons/              # Extension icons (192px from PWA)
+└── README.md           # Installation & development guide
+```
+
+## Recent Updates (November 2, 2025)
+
+**Chrome Extension (Scam Radar) - Initial Release:**
+- ✅ Created MV3 extension structure in `/extension` folder
+- ✅ Background service worker with "ON" badge indicator
+- ✅ Content script for local risk detection (phishing, suspicious URLs)
+- ✅ Popup UI with stats, export, and daily reports
+- ✅ Privacy-first: all scanning happens locally
+- ✅ Updated landing page with dual CTAs (PWA + Extension)
+- ✅ Created `/docs/extension-dev` page with installation instructions
+- ✅ Extension ready for developer testing via Load Unpacked
 
 ## Recent Updates (October 31, 2025)
 
