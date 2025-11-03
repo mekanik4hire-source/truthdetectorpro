@@ -1,17 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Scam Radar",
-  "version": "0.1.1",
-  "description": "Always-on background protection against scams, phishing, and misinformation.",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "name": "TruthDetectorPro – Scam Radar",
+  "version": "0.1.2",
+  "description": "Always-on, privacy-first scam & phishing hints. Runs locally.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Scam Radar",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background-v2.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -19,18 +23,5 @@
       "js": ["content.js"],
       "run_at": "document_idle"
     }
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
-  },
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+  ]
 }
