@@ -136,6 +136,25 @@ app.get("/api/vault/:id/download", (req, res) => {
 // Minimal HTML viewer (works without extra React route)
 app.get("/vault/:id", (_req, res, next) => next()); // let SPA handle path
 
+// -------------------- Health Check Endpoints --------------------
+// Very simple "I'm alive" endpoint
+app.get('/healthz', (_req, res) => {
+  res.type('text').send('ok');
+});
+
+// Quick app version / environment info
+app.get('/healthz/details', (_req, res) => {
+  res.json({
+    status: 'ok',
+    node: process.version,
+    time: new Date().toISOString(),
+    env: {
+      NODE_ENV: process.env.NODE_ENV || 'dev',
+      RENDER: !!process.env.RENDER,   // true on Render
+    },
+  });
+});
+
 // -------------------- Serve SPA (static) --------------------
 // Serve everything under /server/public at the web root
 app.use(express.static(path.join(process.cwd(), "server", "public")));
