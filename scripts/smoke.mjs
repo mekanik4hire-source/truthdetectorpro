@@ -1,7 +1,7 @@
 // Run with: node scripts/smoke.mjs https://truthdetectorpro.onrender.com
 // Uses built-in fetch (Node 18+)
 
-const base = process.argv[2] || "http://localhost:3000";
+const base = process.argv[2] || "http://localhost:5000";
 let failed = 0;
 const check = (msg, ok) => {
   console.log(`${ok ? "✅" : "❌"} ${msg}`);
