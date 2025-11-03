@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import {
   ShieldCheck,
   Eye,
@@ -22,6 +23,33 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function Home() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      console.log('[PWA] Install prompt captured');
+    };
+    
+    window.addEventListener('beforeinstallprompt', handler);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert('Install not available yet. Visit the home page then come back.');
+      return;
+    }
+    
+    await (deferredPrompt as any).prompt();
+    const { outcome } = await (deferredPrompt as any).userChoice;
+    console.log(`[PWA] User response: ${outcome}`);
+    setDeferredPrompt(null);
+  };
   return (
     <div className="min-h-screen bg-[#0B0E12] text-white">
       <div className="h-1 w-full bg-gradient-to-r from-[#C69C6D] via-[#A87C48] to-[#2A8C82]" />
@@ -40,13 +68,14 @@ export default function Home() {
           
           <div className="mt-8 flex flex-col gap-4">
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/install"
+              <button
+                id="installPwaBtn"
+                onClick={handleInstallClick}
                 data-testid="button-install-pwa"
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#2AD17B] px-5 py-3 text-black font-semibold hover:brightness-95 transition"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#2AD17B] px-5 py-3 text-black font-semibold hover:brightness-95 transition cursor-pointer"
               >
                 <Download className="h-5 w-5" /> Install App (PWA)
-              </Link>
+              </button>
               <Link
                 href="/docs/extension-dev"
                 data-testid="button-add-extension"
