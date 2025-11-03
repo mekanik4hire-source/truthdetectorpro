@@ -219,17 +219,19 @@ extension/
 └── README.md           # Installation & development guide
 ```
 
-## Recent Updates (November 2, 2025)
+## Recent Updates (November 3, 2025)
 
-**Chrome Extension (Scam Radar) - Initial Release:**
+**Chrome Extension (Scam Radar) - Working Release:**
 - ✅ Created MV3 extension structure in `/extension` folder
-- ✅ Background service worker with "ON" badge indicator
+- ✅ Background service worker with "ON" badge indicator (fixed service worker registration)
 - ✅ Content script for local risk detection (phishing, suspicious URLs)
 - ✅ Popup UI with stats, export, and daily reports
 - ✅ Privacy-first: all scanning happens locally
 - ✅ Updated landing page with dual CTAs (PWA + Extension)
-- ✅ Created `/docs/extension-dev` page with installation instructions
-- ✅ Extension ready for developer testing via Load Unpacked
+- ✅ Fixed PWA "Install App" button to trigger native Chrome install dialog
+- ✅ Renamed screenshots to include dimensions (wide-1280x720.png, mobile-1080x1920.png)
+- ✅ Created `/diag.html` diagnostic page for PWA validation
+- ✅ Extension fully tested and working via Load Unpacked
 
 ## Recent Updates (October 31, 2025)
 
