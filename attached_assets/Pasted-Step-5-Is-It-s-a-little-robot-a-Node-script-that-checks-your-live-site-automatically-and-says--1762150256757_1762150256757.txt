@@ -1,0 +1,120 @@
+Step 5 Is
+
+It’s a little robot (a Node script) that checks your live site automatically and says:
+
+“✅ Health check works”
+
+“✅ Manifest has icons”
+
+“❌ Screenshot missing”
+...so we can catch broken things before adding new features.
+
+🧩 What You Need First
+
+Make sure you already have:
+
+Your Replit project running (the TruthDetectorPro PWA).
+
+The site is live (you can open it at https://truthdetectorpro.onrender.com).
+
+Your extension is working (badge “ON,” ribbon appears).
+
+Now the robot can test the site part.
+
+🪜 Step-by-Step Setup
+1️⃣ Create the robot folder and file
+
+In Replit (left sidebar):
+
+Right-click the main project → New Folder → name it scripts
+
+Inside it, New File → name it smoke.mjs
+
+Paste this exact code inside that new file:
+
+// Run with: node scripts/smoke.mjs https://truthdetectorpro.onrender.com
+import fetch from "node-fetch";
+
+const base = process.argv[2] || "http://localhost:3000";
+let failed = 0;
+const check = (msg, ok) => {
+  console.log(`${ok ? "✅" : "❌"} ${msg}`);
+  if (!ok) failed++;
+};
+
+async function run() {
+  try {
+    const hz = await fetch(`${base}/healthz`);
+    check("/healthz returns ok", hz.ok && (await hz.text()).trim() === "ok");
+
+    const mres = await fetch(`${base}/manifest.webmanifest`);
+    if (!mres.ok) {
+      check("manifest reachable", false);
+    } else {
+      const m = await mres.json().catch(() => null);
+      const icons = (m?.icons || []).map(i => i.sizes || "").join(",");
+      const shots = (m?.screenshots || []).map(s => s.sizes || "").join(",");
+      check("manifest reachable", true);
+      check("has 192 & 512 icons", /192/.test(icons) && /512/.test(icons));
+      check("has 1280x720 & 1080x1920 screenshots", /1280/.test(shots) && /1080/.test(shots));
+    }
+  } catch (e) {
+    console.log("❌ Smoke test crashed:", e.message);
+    failed++;
+  }
+  console.log("\n---");
+  console.log(failed ? `❌ ${failed} tests failed` : "✅ All tests passed!");
+  process.exit(failed ? 1 : 0);
+}
+
+run();
+
+2️⃣ Tell Replit how to run it
+
+Open your package.json file, find "scripts": { ... }, and add this line inside:
+
+"smoke": "node scripts/smoke.mjs https://truthdetectorpro.onrender.com"
+
+
+It should look something like this:
+
+"scripts": {
+  "start": "node index.js",
+  "smoke": "node scripts/smoke.mjs https://truthdetectorpro.onrender.com"
+}
+
+
+Save it.
+
+3️⃣ Run the robot 🤖
+
+At the bottom of Replit, click the Shell tab.
+
+Type:
+
+npm run smoke
+
+
+and hit Enter.
+
+🧾 What You Should See
+
+Something like:
+
+✅ /healthz returns ok
+✅ manifest reachable
+✅ has 192 & 512 icons
+✅ has 1280x720 & 1080x1920 screenshots
+---
+✅ All tests passed!
+
+
+If you see any ❌ red lines, copy those lines and paste them here — that tells me exactly what’s broken so I can fix or generate the missing file for you.
+
+🔍 What Happens Next
+
+Once this robot says “✅ All tests passed,” you’ll be fully ready to move to Phase 2:
+
+adding automatic daily risk reports inside the extension,
+
+connecting the extension’s exports to the Evidence Vault in your PWA.
