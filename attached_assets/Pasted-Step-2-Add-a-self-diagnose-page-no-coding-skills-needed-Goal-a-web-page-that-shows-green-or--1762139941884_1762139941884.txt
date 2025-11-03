@@ -1,0 +1,94 @@
+Step 2 — Add a self-diagnose page (no coding skills needed)
+
+Goal: a web page that shows green ✅ or red ❌ for the PWA pieces.
+
+Copy–paste a file (client side)
+
+In your Replit project, open your public folder (where index.html lives).
+
+Create a new file called diag.html.
+
+Paste this:
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TruthDetectorPro — Diagnostics</title>
+  <style>
+    body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:16px;max-width:800px;margin:auto}
+    .ok{color:#065f46}.bad{color:#7f1d1d}.muted{color:#6b7280}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    .box{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0}
+  </style>
+</head>
+<body>
+  <h1>Diagnostics</h1>
+  <p class="muted">Green = good. Red = needs fixing.</p>
+
+  <div id="checks" class="box"></div>
+  <div class="box">
+    <h3>Tips</h3>
+    <ul>
+      <li>Install prompt only appears when Chrome fires <code>beforeinstallprompt</code>.</li>
+      <li>“Page is controlled by Service Worker” means offline shell works.</li>
+      <li>Icons (192/512) and screenshots (1280×720 & 1080×1920) must exist.</li>
+    </ul>
+  </div>
+
+<script>
+(async () => {
+  const el = document.getElementById('checks');
+  const add = (label, pass, extra='') => {
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.innerHTML = `<span class="${pass?'ok':'bad'}">${pass?'✅':'❌'}</span> <strong>${label}</strong> <span class="muted">${extra}</span>`;
+    el.appendChild(div);
+  };
+
+  // 1) Manifest loads?
+  let manifestOk=false, iconsOk=false, shotsOk=false;
+  try {
+    const res = await fetch('/manifest.webmanifest');
+    manifestOk = res.ok;
+    const m = manifestOk ? await res.json() : {};
+    const icons = (m.icons||[]).map(i=>i.src);
+    iconsOk = icons.some(s=>s.includes('192')) && icons.some(s=>s.includes('512'));
+    const shots = (m.screenshots||[]).map(s=>s.src || s);
+    shotsOk = shots.some(s=>s.includes('1280')) && shots.some(s=>s.includes('1080'));
+  } catch(e){}
+
+  add('Manifest reachable', manifestOk);
+  add('Icons 192 & 512 present', iconsOk);
+  add('Screenshots 1280×720 & 1080×1920 present', shotsOk);
+
+  // 2) Service worker status?
+  let swControlled = false;
+  try {
+    swControlled = !!navigator.serviceWorker?.controller;
+  } catch(e){}
+  add('Page controlled by Service Worker', swControlled, swControlled?'':'(Hard reload after visiting home page)');
+
+  // 3) beforeinstallprompt fired?
+  let bipFired = false;
+  window.addEventListener('beforeinstallprompt',(e)=>{bipFired=true; add('Install prompt available', true);});
+  setTimeout(()=>{ if(!bipFired) add('Install prompt available', false, '(Open home page first, then return)'); }, 1500);
+
+  // 4) Healthz reachable?
+  try{
+    const hz = await fetch('/healthz'); add('/healthz responds with ok', (await hz.text()).trim()==='ok');
+  }catch(e){ add('/healthz responds with ok', false) }
+
+})();
+</script>
+</body>
+</html>
+
+Checklist
+
+ Open /diag.html in your app.
+
+ You’ll see ✅ / ❌ for manifest, icons, screenshots, service worker, install prompt, healthz.
+
+ Screenshot this page if anything shows ❌.

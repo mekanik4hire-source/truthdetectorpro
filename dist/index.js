@@ -94,6 +94,21 @@ app.get("/api/vault/:id/download", (req, res) => {
   res.send(JSON.stringify(doc, null, 2));
 });
 app.get("/vault/:id", (_req, res, next) => next());
+app.get("/healthz", (_req, res) => {
+  res.type("text").send("ok");
+});
+app.get("/healthz/details", (_req, res) => {
+  res.json({
+    status: "ok",
+    node: process.version,
+    time: (/* @__PURE__ */ new Date()).toISOString(),
+    env: {
+      NODE_ENV: process.env.NODE_ENV || "dev",
+      RENDER: !!process.env.RENDER
+      // true on Render
+    }
+  });
+});
 app.use(express.static(path.join(process.cwd(), "server", "public")));
 app.get("*", (_req, res) => {
   res.sendFile(path.join(process.cwd(), "server", "public", "index.html"));

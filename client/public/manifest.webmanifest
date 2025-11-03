@@ -16,15 +16,15 @@
   "categories": ["news", "utilities", "productivity"],
   "screenshots": [
     {
-      "src": "/screenshots/wide-landing.png",
+      "src": "/screenshots/wide-1280x720.png",
       "type": "image/png",
       "sizes": "1280x720",
       "form_factor": "wide"
     },
     {
-      "src": "/screenshots/mobile-landing.png",
+      "src": "/screenshots/mobile-1080x1920.png",
       "type": "image/png",
-      "sizes": "640x1136",
+      "sizes": "1080x1920",
       "form_factor": "narrow"
     }
   ],
