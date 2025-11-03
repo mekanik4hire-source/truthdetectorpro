@@ -1,7 +1,7 @@
 // TruthDetectorPro - Scam Radar Content Script
 // Injected into every webpage to scan for risks
 
-console.log('[TDP Content] Script loaded on:', window.location.href);
+console.log('[Scam Radar] Content script loaded on:', window.location.href);
 
 // Simple local risk detection rules (privacy-first, runs on device)
 const RISK_PATTERNS = {
@@ -71,27 +71,31 @@ function scanPage() {
 
 // Run scan when page loads
 setTimeout(() => {
-  const risks = scanPage();
-  
-  if (risks.length > 0) {
-    console.log('[TDP Content] Risks detected:', risks);
+  try {
+    const risks = scanPage();
     
-    // Notify background script
-    chrome.runtime.sendMessage({
-      type: 'RISK_DETECTED',
-      count: risks.length,
-      risks: risks
-    });
-    
-    // Show warning ribbon (non-intrusive)
-    showWarningRibbon(risks);
-  } else {
-    console.log('[TDP Content] No risks detected on this page');
-    
-    // Notify background script to reset badge to ON
-    chrome.runtime.sendMessage({
-      type: 'NO_RISKS'
-    });
+    if (risks.length > 0) {
+      console.log('[Scam Radar] ⚠️ Risks detected:', risks);
+      
+      // Notify background script
+      chrome.runtime.sendMessage({
+        type: 'RISK_DETECTED',
+        count: risks.length,
+        risks: risks
+      }).catch(err => console.error('[Scam Radar] Error sending message:', err));
+      
+      // Show warning ribbon (non-intrusive)
+      showWarningRibbon(risks);
+    } else {
+      console.log('[Scam Radar] ✅ No risks detected on this page');
+      
+      // Notify background script to reset badge to ON
+      chrome.runtime.sendMessage({
+        type: 'NO_RISKS'
+      }).catch(err => console.error('[Scam Radar] Error sending message:', err));
+    }
+  } catch (error) {
+    console.error('[Scam Radar] Error during page scan:', error);
   }
 }, 1000);
 
@@ -157,5 +161,5 @@ function showWarningRibbon(risks) {
   
   document.body.prepend(ribbon);
   
-  console.log('[TDP Content] Warning ribbon displayed');
+  console.log('[Scam Radar] Warning ribbon displayed');
 }
