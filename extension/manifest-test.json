@@ -11,7 +11,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background-v2.js"
+    "service_worker": "background-simple.js"
   },
   "content_scripts": [
     {
